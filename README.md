@@ -30,3 +30,10 @@ client.action.query("select Id, Name from Account where AccountNumber='XXXX'").t
 });
 
 ```
+## License
+
+MIT
+
+## Contributions are welcome
+
+See https://github.com/AirVantage/zuorajs/issues.
