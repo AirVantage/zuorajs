@@ -3,6 +3,7 @@ const got = require("got");
 const _ = require("lodash");
 const actionLib = require("./lib/action.js");
 const subscriptionsLib = require("./lib/subscriptions.js");
+const productRatePlansLib = require("./lib/productRatePlans.js");
 
 function Zuora(config) {
     this.serverUrl = config.url;
@@ -13,6 +14,7 @@ function Zuora(config) {
 
     this.action = actionLib(this);
     this.subscriptions = subscriptionsLib(this);
+    this.productRatePlans = productRatePlansLib(this);
 }
 module.exports = Zuora;
 
