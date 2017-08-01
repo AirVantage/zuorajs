@@ -9,6 +9,7 @@ const accountsLib = require("./lib/accounts.js");
 const contactsLib = require("./lib/contacts.js");
 const ratePlanChargesLib = require("./lib/ratePlanCharges.js");
 const taxationItemsLib = require("./lib/taxationItems.js");
+const productRatePlansLib = require("./lib/productRatePlans.js");
 
 function Zuora(config) {
     this.serverUrl = config.url;
@@ -25,6 +26,7 @@ function Zuora(config) {
     this.invoiceItems = invoiceItemsLib(this);
     this.ratePlanCharges = ratePlanChargesLib(this);
     this.taxationItems = taxationItemsLib(this);
+    this.productRatePlans = productRatePlansLib(this);
 }
 module.exports = Zuora;
 
