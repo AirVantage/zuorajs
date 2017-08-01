@@ -3,6 +3,12 @@ const got = require("got");
 const _ = require("lodash");
 const actionLib = require("./lib/action.js");
 const subscriptionsLib = require("./lib/subscriptions.js");
+const invoicesLib = require("./lib/invoices.js");
+const invoiceItemsLib = require("./lib/invoiceItems.js");
+const accountsLib = require("./lib/accounts.js");
+const contactsLib = require("./lib/contacts.js");
+const ratePlanChargesLib = require("./lib/ratePlanCharges.js");
+const taxationItemsLib = require("./lib/taxationItems.js");
 
 function Zuora(config) {
     this.serverUrl = config.url;
@@ -11,8 +17,14 @@ function Zuora(config) {
     this.entityId = config.entityId;
     this.entityName = config.entityName;
 
+    this.accounts = accountsLib(this);
     this.action = actionLib(this);
+    this.contacts = contactsLib(this);
     this.subscriptions = subscriptionsLib(this);
+    this.invoices = invoicesLib(this);
+    this.invoiceItems = invoiceItemsLib(this);
+    this.ratePlanCharges = ratePlanChargesLib(this);
+    this.taxationItems = taxationItemsLib(this);
 }
 module.exports = Zuora;
 
@@ -29,9 +41,8 @@ Zuora.prototype.authenticate = function() {
             },
             json: true
         };
-        console.log("Auth request");
         return got.post(url, query)
-            .then(function(res) {
+            .then(res => {
                 self.authCookie = res.headers["set-cookie"][0];
                 return self.authCookie;
             });
