@@ -5,6 +5,7 @@ const accountsLib = require('./lib/accounts.js');
 const actionLib = require('./lib/action.js');
 const attachmentsLib = require('./lib/attachments.js');
 const contactsLib = require('./lib/contacts.js');
+const exportsLib = require('./lib/exports.js');
 const filesLib = require('./lib/files.js');
 const invoicesLib = require('./lib/invoices.js');
 const invoiceItemsLib = require('./lib/invoiceItems.js');
@@ -25,6 +26,7 @@ function Zuora(config) {
   this.action = actionLib(this);
   this.attachments = attachmentsLib(this);
   this.contacts = contactsLib(this);
+  this.exports = exportsLib(this);
   this.files = filesLib(this);
   this.invoices = invoicesLib(this);
   this.invoiceItems = invoiceItemsLib(this);
