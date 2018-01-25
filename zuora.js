@@ -18,6 +18,7 @@ const subscriptionsLib = require('./lib/subscriptions.js');
 const taxationItemsLib = require('./lib/taxationItems.js');
 const paymentMethodsLib = require('./lib/paymentMethods');
 const rsaSignaturesLib = require('./lib/rsaSignatures');
+const paymentsLib = require('./lib/payments');
 
 function Zuora(config) {
   this.serverUrl = config.url;
@@ -45,6 +46,7 @@ function Zuora(config) {
   this.taxationItems = taxationItemsLib(this);
   this.paymentMethods = paymentMethodsLib(this);
   this.rsaSignatures = rsaSignaturesLib(this);
+  this.payments = paymentsLib(this);
 }
 module.exports = Zuora;
 
