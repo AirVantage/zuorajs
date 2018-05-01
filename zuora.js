@@ -48,9 +48,10 @@ function Zuora(config) {
   this.rsaSignatures = rsaSignaturesLib(this);
   this.payments = paymentsLib(this);
 }
+
 module.exports = Zuora;
 
-Zuora.prototype.authenticate = function() {
+Zuora.prototype.authenticate = function () {
   const oauthV2 = () => {
     if (this.access_token === undefined || Date.now() > this.renewal_time) {
       const url = this.serverUrl.replace('/v1', '/oauth/token');
@@ -58,83 +59,73 @@ Zuora.prototype.authenticate = function() {
       const auth_params = {
         form: true,
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: {
           client_id: this.client_id,
           client_secret: this.client_secret,
-          grant_type: 'client_credentials'
-        }
+          grant_type: 'client_credentials',
+        },
       };
 
-      return got.post(url, auth_params).then(res => {
+      return got.post(url, auth_params).then((res) => {
         const responseBody = JSON.parse(res.body);
 
         this.access_token = responseBody.access_token;
         this.renewal_time = Date.now() + responseBody.expires_in * 1000 - 60000;
         return { Authorization: `Bearer ${this.access_token}` };
       });
-    } else {
-      return BPromise.resolve({ Authorization: `Bearer ${this.access_token}` });
     }
+    return BPromise.resolve({ Authorization: `Bearer ${this.access_token}` });
   };
 
   const oauthCookie = () => {
     if (this.authCookie === undefined) {
-      var url = this.serverUrl + '/connections';
-      var query = {
+      const url = `${this.serverUrl}/connections`;
+      const query = {
         headers: {
           'user-agent': 'zuorajs',
           apiAccessKeyId: this.apiAccessKeyId,
-          apiSecretAccessKey: this.apiSecretAccessKey
+          apiSecretAccessKey: this.apiSecretAccessKey,
         },
-        json: true
+        json: true,
       };
-      return got.post(url, query).then(res => {
+      return got.post(url, query).then((res) => {
         this.authCookie = res.headers['set-cookie'][0];
         return { cookie: this.authCookie };
       });
-    } else {
-      return BPromise.resolve({ cookie: this.authCookie });
     }
+    return BPromise.resolve({ cookie: this.authCookie });
   };
 
   if (this.oauthType === 'oauth_v2') {
     return oauthV2();
-  } else {
-    return oauthCookie();
   }
+  return oauthCookie();
 };
 
-Zuora.prototype.getObject = function(url) {
-  var self = this;
-  return self.authenticate().then(headers => {
-    var fullUrl = self.serverUrl + url;
-    var query = {
+Zuora.prototype.getObject = function (url) {
+  const self = this;
+  return self.authenticate().then((headers) => {
+    const fullUrl = self.serverUrl + url;
+    const query = {
       headers,
-      json: true
+      json: true,
     };
-    return got.get(fullUrl, query).then(res => res.body);
+    return got.get(fullUrl, query).then((res) => res.body);
   });
 };
 
-Zuora.prototype.queryFirst = function(queryString) {
-  return this.action.query(queryString).then(queryResult => (queryResult.size > 0 ? queryResult.records[0] : null));
+Zuora.prototype.queryFirst = function (queryString) {
+  return this.action.query(queryString).then((queryResult) => (queryResult.size > 0 ? queryResult.records[0] : null));
 };
 
-Zuora.prototype.queryFull = function(queryString) {
-  const fullQueryMore = queryLocator =>
-    this.action
-      .queryMore(queryLocator)
-      .then(
-        result =>
-          result.done ? result.records : fullQueryMore(result.queryLocator).then(more => _.concat(result.records, more))
-      );
+Zuora.prototype.queryFull = function (queryString) {
+  const fullQueryMore = (queryLocator) => this.action
+    .queryMore(queryLocator)
+    .then((result) => (result.done ? result.records : fullQueryMore(result.queryLocator).then((more) => _.concat(result.records, more))));
 
   return this.action
     .query(queryString)
-    .then(
-      result =>
-        result.done ? result.records : fullQueryMore(result.queryLocator).then(more => _.concat(result.records, more))
-    );
+    .then((result) => (result.done ? result.records : fullQueryMore(result.queryLocator).then((more) => _.concat(result.records, more))));
 };
