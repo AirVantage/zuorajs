@@ -6,6 +6,7 @@ const accountsLib = require('./lib/accounts.js');
 const actionLib = require('./lib/action.js');
 const attachmentsLib = require('./lib/attachments.js');
 const billRunLib = require('./lib/billRun.js');
+const catalogLib = require('./lib/catalog');
 const contactsLib = require('./lib/contacts.js');
 const exportsLib = require('./lib/exports.js');
 const filesLib = require('./lib/files.js');
@@ -19,21 +20,46 @@ const taxationItemsLib = require('./lib/taxationItems.js');
 const paymentMethodsLib = require('./lib/paymentMethods');
 const rsaSignaturesLib = require('./lib/rsaSignatures');
 const paymentsLib = require('./lib/payments');
+const quotesLib = require('./lib/quotes');
 
+/**
+ * @typedef {object} ZuoraClientConfig
+ * @property {string} apiVersion
+ * @property {string} url
+ * @property {string} [oauthTokenPath]
+ * @property {string} [oauthType]
+ * @property {string} [apiAccessKeyId]
+ * @property {string} [apiSecretAccessKey]
+ * @property {string} [clientId]
+ * @property {string} [clientSecret]
+ * @property {object} [catalogCache]
+ * @property {string} [client_id] - @deprecated use `clientId` instead
+ * @property {string} [client_secret] - @deprecated use `clientSecret` instead
+ */
+
+/**
+ * @param {ZuoraClientConfig} config
+ * @constructor
+ */
 function Zuora(config) {
-  this.serverUrl = config.url;
+  this.apiVersion = (config.apiVersion || '/v1');
+  this.apiVersionUrl = `${config.url}${this.apiVersion}`;
+
+  this.oauthTokenPath = (config.oauthTokenPath || '/oauth/token');
   this.oauthType = config.oauthType || 'cookie';
+
   this.apiAccessKeyId = config.apiAccessKeyId;
   this.apiSecretAccessKey = config.apiSecretAccessKey;
-  this.client_id = config.client_id;
-  this.client_secret = config.client_secret;
-  this.entityId = config.entityId;
-  this.entityName = config.entityName;
+  this.clientId = config.clientId || config.client_id;
+  this.clientSecret = config.clientSecret || config.client_secret;
+  // this.entityId = config.entityId;
+  // this.entityName = config.entityName;
 
   this.accounts = accountsLib(this);
   this.action = actionLib(this);
   this.attachments = attachmentsLib(this);
   this.billRun = billRunLib(this);
+  this.catalog = catalogLib(this, config.catalogCache);
   this.contacts = contactsLib(this);
   this.exports = exportsLib(this);
   this.files = filesLib(this);
@@ -47,94 +73,100 @@ function Zuora(config) {
   this.paymentMethods = paymentMethodsLib(this);
   this.rsaSignatures = rsaSignaturesLib(this);
   this.payments = paymentsLib(this);
+  this.quotes = quotesLib(this);
 }
+
 module.exports = Zuora;
 
-Zuora.prototype.authenticate = function() {
+function normalizePath(version, path) {
+  if (path.startsWith(version)) {
+    return path.replace(version, '');
+  }
+
+  return path;
+}
+
+Zuora.prototype.getApiUrlWithPath = function getApiUrlWithPath(path) {
+  const normalizedPath = normalizePath(this.apiVersion, path);
+
+  return `${this.apiVersionUrl}${normalizedPath}`;
+};
+
+Zuora.prototype.authenticate = function authenticate() {
   const oauthV2 = () => {
     if (this.access_token === undefined || Date.now() > this.renewal_time) {
-      const url = this.serverUrl.replace('/v1', '/oauth/token');
+      const url = this.apiVersionUrl.replace(this.apiVersion, this.oauthTokenPath);
 
-      const auth_params = {
+      const authParams = {
         form: true,
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: {
-          client_id: this.client_id,
-          client_secret: this.client_secret,
-          grant_type: 'client_credentials'
-        }
+          client_id: this.clientId,
+          client_secret: this.clientSecret,
+          grant_type: 'client_credentials',
+        },
       };
 
-      return got.post(url, auth_params).then(res => {
+      return got.post(url, authParams).then((res) => {
         const responseBody = JSON.parse(res.body);
 
         this.access_token = responseBody.access_token;
-        this.renewal_time = Date.now() + responseBody.expires_in * 1000 - 60000;
+        this.renewal_time = Date.now() + ((responseBody.expires_in * 1000) - 60000);
         return { Authorization: `Bearer ${this.access_token}` };
       });
-    } else {
-      return BPromise.resolve({ Authorization: `Bearer ${this.access_token}` });
     }
+    return BPromise.resolve({ Authorization: `Bearer ${this.access_token}` });
   };
 
   const oauthCookie = () => {
     if (this.authCookie === undefined) {
-      var url = this.serverUrl + '/connections';
-      var query = {
+      const url = `${this.apiVersionUrl}/connections`;
+      const query = {
         headers: {
           'user-agent': 'zuorajs',
           apiAccessKeyId: this.apiAccessKeyId,
-          apiSecretAccessKey: this.apiSecretAccessKey
+          apiSecretAccessKey: this.apiSecretAccessKey,
         },
-        json: true
+        json: true,
       };
-      return got.post(url, query).then(res => {
-        this.authCookie = res.headers['set-cookie'][0];
+      return got.post(url, query).then((res) => {
+        const [cookieValue] = res.headers['set-cookie'];
+        this.authCookie = cookieValue;
         return { cookie: this.authCookie };
       });
-    } else {
-      return BPromise.resolve({ cookie: this.authCookie });
     }
+    return BPromise.resolve({ cookie: this.authCookie });
   };
 
   if (this.oauthType === 'oauth_v2') {
     return oauthV2();
-  } else {
-    return oauthCookie();
   }
+  return oauthCookie();
 };
 
-Zuora.prototype.getObject = function(url) {
-  var self = this;
-  return self.authenticate().then(headers => {
-    var fullUrl = self.serverUrl + url;
-    var query = {
+Zuora.prototype.getObject = function getObject(path) {
+  return this.authenticate().then((headers) => {
+    const url = this.getApiUrlWithPath(path);
+    const query = {
       headers,
-      json: true
+      json: true,
     };
-    return got.get(fullUrl, query).then(res => res.body);
+    return got.get(url, query).then((res) => res.body);
   });
 };
 
-Zuora.prototype.queryFirst = function(queryString) {
-  return this.action.query(queryString).then(queryResult => (queryResult.size > 0 ? queryResult.records[0] : null));
+Zuora.prototype.queryFirst = function queryFirst(queryString) {
+  return this.action.query(queryString).then((queryResult) => (queryResult.size > 0 ? queryResult.records[0] : null));
 };
 
-Zuora.prototype.queryFull = function(queryString) {
-  const fullQueryMore = queryLocator =>
-    this.action
-      .queryMore(queryLocator)
-      .then(
-        result =>
-          result.done ? result.records : fullQueryMore(result.queryLocator).then(more => _.concat(result.records, more))
-      );
+Zuora.prototype.queryFull = function queryFull(queryString) {
+  const fullQueryMore = (queryLocator) => this.action
+    .queryMore(queryLocator)
+    .then((result) => (result.done ? result.records : fullQueryMore(result.queryLocator).then((more) => _.concat(result.records, more))));
 
   return this.action
     .query(queryString)
-    .then(
-      result =>
-        result.done ? result.records : fullQueryMore(result.queryLocator).then(more => _.concat(result.records, more))
-    );
+    .then((result) => (result.done ? result.records : fullQueryMore(result.queryLocator).then((more) => _.concat(result.records, more))));
 };

@@ -4,9 +4,14 @@
   "description": "Zuora REST API client for nodejs",
   "main": "zuora.js",
   "scripts": {
-    "test": "node test/main.js"
+    "test": "mocha tests -R progress"
   },
-  "keywords": ["zuora", "rest", "api", "nodejs"],
+  "keywords": [
+    "zuora",
+    "rest",
+    "api",
+    "nodejs"
+  ],
   "author": "David Sciamma <dsciamma@sierrawireless.com>",
   "license": "MIT",
   "dependencies": {
@@ -17,20 +22,12 @@
     "form-data": "^2.3.0"
   },
   "devDependencies": {
-    "eslint": "^4.8.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.11.0",
+    "eslint-plugin-mocha": "^5.0.0",
     "grunt": "^0.4.5",
     "grunt-release": "^0.13.0",
-    "prettier": "^1.6.1"
-  },
-  "eslintConfig": {
-    "env": {
-      "node": true,
-      "es6": true
-    },
-    "extends": ["eslint:recommended"],
-    "rules": {
-      "linebreak-style": ["error", "unix"],
-      "max-params": ["warn", 3]
-    }
+    "mocha": "^5.1.1"
   }
 }
