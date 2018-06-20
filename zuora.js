@@ -20,6 +20,7 @@ const taxationItemsLib = require('./lib/taxationItems.js');
 const paymentMethodsLib = require('./lib/paymentMethods');
 const rsaSignaturesLib = require('./lib/rsaSignatures');
 const paymentsLib = require('./lib/payments');
+const quotesLib = require('./lib/quotes');
 
 /**
  * @typedef {object} ZuoraClientConfig
@@ -72,6 +73,7 @@ function Zuora(config) {
   this.paymentMethods = paymentMethodsLib(this);
   this.rsaSignatures = rsaSignaturesLib(this);
   this.payments = paymentsLib(this);
+  this.quotes = quotesLib(this);
 }
 
 module.exports = Zuora;
