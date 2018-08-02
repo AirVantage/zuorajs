@@ -53,7 +53,7 @@ module.exports = Zuora;
 Zuora.prototype.authenticate = function() {
   const oauthV2 = () => {
     if (this.access_token === undefined || Date.now() > this.renewal_time) {
-      const url = this.serverUrl.replace('/v1', '/oauth/token');
+      const url = `${this.serverUrl}/oauth/token`;
 
       const auth_params = {
         form: true,
@@ -81,7 +81,7 @@ Zuora.prototype.authenticate = function() {
 
   const oauthCookie = () => {
     if (this.authCookie === undefined) {
-      var url = this.serverUrl + '/connections';
+      var url = this.serverUrl + '/v1/connections';
       var query = {
         headers: {
           'user-agent': 'zuorajs',
