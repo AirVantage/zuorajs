@@ -4,6 +4,7 @@ const _ = require('lodash');
 
 const accountsLib = require('./lib/accounts.js');
 const actionLib = require('./lib/action.js');
+const amendmentLib = require('./lib/amendments.js');
 const attachmentsLib = require('./lib/attachments.js');
 const billRunLib = require('./lib/billRun.js');
 const contactsLib = require('./lib/contacts.js');
@@ -32,6 +33,7 @@ function Zuora(config) {
 
   this.accounts = accountsLib(this);
   this.action = actionLib(this);
+  this.amendments = amendmentLib(this);
   this.attachments = attachmentsLib(this);
   this.billRun = billRunLib(this);
   this.contacts = contactsLib(this);
