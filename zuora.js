@@ -20,6 +20,7 @@ const taxationItemsLib = require('./lib/taxationItems.js');
 const paymentMethodsLib = require('./lib/paymentMethods');
 const rsaSignaturesLib = require('./lib/rsaSignatures');
 const paymentsLib = require('./lib/payments');
+const usagesLib = require('./lib/usages.js');
 
 function Zuora(config) {
   this.serverUrl = config.url;
@@ -49,6 +50,7 @@ function Zuora(config) {
   this.paymentMethods = paymentMethodsLib(this);
   this.rsaSignatures = rsaSignaturesLib(this);
   this.payments = paymentsLib(this);
+  this.usages = usagesLib(this);
 }
 module.exports = Zuora;
 
@@ -128,15 +130,13 @@ Zuora.prototype.queryFull = function(queryString) {
   const fullQueryMore = queryLocator =>
     this.action
       .queryMore(queryLocator)
-      .then(
-        result =>
-          result.done ? result.records : fullQueryMore(result.queryLocator).then(more => _.concat(result.records, more))
+      .then(result =>
+        result.done ? result.records : fullQueryMore(result.queryLocator).then(more => _.concat(result.records, more))
       );
 
   return this.action
     .query(queryString)
-    .then(
-      result =>
-        result.done ? result.records : fullQueryMore(result.queryLocator).then(more => _.concat(result.records, more))
+    .then(result =>
+      result.done ? result.records : fullQueryMore(result.queryLocator).then(more => _.concat(result.records, more))
     );
 };
