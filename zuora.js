@@ -85,8 +85,8 @@ Zuora.prototype.authenticate = function() {
 
   const oauthCookie = () => {
     if (this.authCookie === undefined) {
-      var url = this.serverUrl + '/v1/connections';
-      var query = {
+      const url = this.serverUrl + '/v1/connections';
+      const query = {
         headers: {
           'user-agent': 'zuorajs',
           apiAccessKeyId: this.apiAccessKeyId,
@@ -111,10 +111,10 @@ Zuora.prototype.authenticate = function() {
 };
 
 Zuora.prototype.getObject = function(url) {
-  var self = this;
+  const self = this;
   return self.authenticate().then(headers => {
-    var fullUrl = self.serverUrl + url;
-    var query = {
+    const fullUrl = self.serverUrl + url;
+    const query = {
       headers,
       json: true
     };
