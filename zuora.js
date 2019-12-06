@@ -111,9 +111,8 @@ Zuora.prototype.authenticate = function() {
 };
 
 Zuora.prototype.getObject = function(url) {
-  const self = this;
-  return self.authenticate().then(headers => {
-    const fullUrl = self.serverUrl + url;
+  return this.authenticate().then(headers => {
+    const fullUrl = this.serverUrl + url;
     const query = {
       headers,
       json: true
