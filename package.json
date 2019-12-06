@@ -2,11 +2,19 @@
   "name": "zuorajs",
   "version": "0.0.1",
   "description": "Zuora REST API client for nodejs",
+  "engines": {
+    "node": ">=6.4.x"
+  },
   "main": "zuora.js",
   "scripts": {
     "test": "node test/main.js"
   },
-  "keywords": ["zuora", "rest", "api", "nodejs"],
+  "keywords": [
+    "zuora",
+    "rest",
+    "api",
+    "nodejs"
+  ],
   "author": "David Sciamma <dsciamma@sierrawireless.com>",
   "license": "MIT",
   "dependencies": {
@@ -30,10 +38,18 @@
     "parserOptions": {
       "ecmaVersion": 8
     },
-    "extends": ["eslint:recommended"],
+    "extends": [
+      "eslint:recommended"
+    ],
     "rules": {
-      "linebreak-style": ["error", "unix"],
-      "max-params": ["warn", 3]
+      "linebreak-style": [
+        "error",
+        "unix"
+      ],
+      "max-params": [
+        "warn",
+        3
+      ]
     }
   }
 }
