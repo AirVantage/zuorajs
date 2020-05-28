@@ -62,16 +62,16 @@ Zuora.prototype.authenticate = function() {
       const auth_params = {
         form: true,
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: {
           client_id: this.client_id,
           client_secret: this.client_secret,
-          grant_type: 'client_credentials'
-        }
+          grant_type: 'client_credentials',
+        },
       };
 
-      return got.post(url, auth_params).then(res => {
+      return got.post(url, auth_params).then((res) => {
         const responseBody = JSON.parse(res.body);
 
         this.access_token = responseBody.access_token;
@@ -90,11 +90,11 @@ Zuora.prototype.authenticate = function() {
         headers: {
           'user-agent': 'zuorajs',
           apiAccessKeyId: this.apiAccessKeyId,
-          apiSecretAccessKey: this.apiSecretAccessKey
+          apiSecretAccessKey: this.apiSecretAccessKey,
         },
-        json: true
+        json: true,
       };
-      return got.post(url, query).then(res => {
+      return got.post(url, query).then((res) => {
         this.authCookie = res.headers['set-cookie'][0];
         return { cookie: this.authCookie };
       });
@@ -111,31 +111,36 @@ Zuora.prototype.authenticate = function() {
 };
 
 Zuora.prototype.getObject = function(url) {
-  return this.authenticate().then(headers => {
+  return this.authenticate().then((headers) => {
     const fullUrl = this.serverUrl + url;
     const query = {
       headers,
-      json: true
+      json: true,
     };
-    return got.get(fullUrl, query).then(res => res.body);
+    return got.get(fullUrl, query).then((res) => res.body);
   });
 };
 
 Zuora.prototype.queryFirst = function(queryString) {
-  return this.action.query(queryString).then(queryResult => (queryResult.size > 0 ? queryResult.records[0] : null));
+  return this.action.query(queryString).then((queryResult) => (queryResult.size > 0 ? queryResult.records[0] : null));
 };
 
 Zuora.prototype.queryFull = function(queryString) {
-  const fullQueryMore = queryLocator =>
+  const fullQueryMore = (queryLocator) =>
     this.action
       .queryMore(queryLocator)
-      .then(result =>
-        result.done ? result.records : fullQueryMore(result.queryLocator).then(more => _.concat(result.records, more))
+      .then((result) =>
+        result.done ? result.records : fullQueryMore(result.queryLocator).then((more) => _.concat(result.records, more))
       );
 
   return this.action
     .query(queryString)
-    .then(result =>
-      result.done ? result.records : fullQueryMore(result.queryLocator).then(more => _.concat(result.records, more))
+    .then((result) =>
+      result.done ? result.records : fullQueryMore(result.queryLocator).then((more) => _.concat(result.records, more))
     );
+};
+
+Zuora.prototype.downloadFile = async function(url) {
+  const headers = await this.authenticate();
+  return got.stream(this.serverUrl + url, { headers });
 };
