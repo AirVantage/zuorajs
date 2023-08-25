@@ -1,0 +1,30 @@
+name: Generate Package
+
+run-name: Release ${{ github.ref_name }} by @${{ github.actor }}
+
+on:
+  release:
+    types:
+      - released
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  release:
+    name: Generate zuorajs GitHub Node Package
+    runs-on:
+      - self-hosted
+      - toolbox-runner
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@airvantage'
+      - run: npm install --no-package-lock
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
